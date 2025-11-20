@@ -1,0 +1,28 @@
+name: SSHX Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sshx-job:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # Maximum allowed by GitHub
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Update & Upgrade Ubuntu
+        run: |
+          sudo apt-get update -y
+          sudo apt-get upgrade -y
+
+      - name: Install and Run SSHX
+        run: |
+          curl -sSf https://sshx.io/get | sh -s run
+
+      - name: Create and Run Hello Script
+        run: |
+          echo -e "#!/bin/bash\nwhile true; do echo 'hello'; sleep 1; done" > hello.sh
+          chmod +x hello.sh
+          ./hello.sh &

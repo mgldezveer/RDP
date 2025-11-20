@@ -1,0 +1,59 @@
+name: Ubuntu Desktop with Tailscale VNC (6 Hours)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup-desktop:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Update and upgrade system
+      run: |
+        sudo apt update && sudo apt upgrade -y
+
+    - name: Install Ubuntu Desktop and TigerVNC
+      run: |
+        sudo apt install -y ubuntu-desktop tigervnc-standalone-server
+
+    - name: Install Tailscale
+      run: |
+        curl -fsSL https://tailscale.com/install.sh | sh
+
+    - name: Create user "muin"
+      run: |
+        sudo useradd -m -s /bin/bash muin
+        echo 'muin:muin' | sudo chpasswd
+        sudo usermod -aG sudo muin
+
+    - name: Start VNC server on display :1
+      run: |
+        sudo -u muin vncserver :1 -geometry 1280x720 -depth 24
+
+    - name: Start Tailscale (requires auth key)
+      env:
+        AUTH_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
+      run: |
+        sudo tailscaled &
+        sleep 5
+        sudo tailscale up --authkey=$AUTH_KEY --hostname github-vnc
+
+    - name: Show connection info
+      run: |
+        echo "======================================"
+        echo "✅ VNC Server running on Display :1"
+        echo "Username: muin"
+        echo "Password: muin"
+        echo "--------------------------------------"
+        echo "🔗 Tailscale IPv4 address:"
+        tailscale ip -4
+        echo "======================================"
+
+    - name: Keep the session alive for 6 hours
+      run: |
+        echo "🕒 Keeping session alive for 6 hours..."
+        for i in $(seq 1 360); do
+          echo "⏳ Minute $i of 360..."
+          sleep 60
+        done
+        echo "⏹️ 6-hour session ended."

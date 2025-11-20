@@ -65,7 +65,7 @@ jobs:
       max-parallel: 10
     timeout-minutes: 370
     env:
-      RDP_USER: root
+      RDP_USER: rdpuser
       RDP_PASS: Bangla@123
 
     steps:
